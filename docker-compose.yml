@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  app:
+    image: golang:1.23
+    container_name: golang_app
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000" # 外部端口 8000 對應到容器內的 8080
+    command: go run ./
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=rootpassword
+      - DB_NAME=mydb
+      - REDIS_ADDR=redis:6379
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydb
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  redis:
+    image: redis:alpine
+    container_name: redis_server
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+volumes:
+  dbdata:
+  redisdata:
